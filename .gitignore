@@ -13,3 +13,10 @@ venv/
 .bedrock_agentcore.yaml
 .bedrock_agentcore/
 .dockerignore
+
+# Internal planning doc + client deliverables - handed over separately
+# (DOCX/video), not part of the source code repo itself.
+CLAUDE.md
+docs/AgentCore_Project_Guide.docx
+docs/STEPS.md
+docs/generate_docx.py
