@@ -10,6 +10,8 @@ itself:
 Safe to re-run - every step tolerates the resource already being gone.
 """
 
+import time
+
 import boto3
 from botocore.exceptions import ClientError
 
@@ -48,6 +50,16 @@ def delete_gateway(client, name):
     for target in targets:
         client.delete_gateway_target(gatewayIdentifier=gateway_id, targetId=target["targetId"])
         print(f"  Deleted gateway target: {target['name']}")
+
+    # Target deletion is async - poll until the gateway actually reports
+    # zero targets before trying to delete the gateway itself, otherwise
+    # AWS rejects it with "has targets associated with it".
+    for _ in range(15):
+        remaining = client.list_gateway_targets(gatewayIdentifier=gateway_id).get("items", [])
+        if not remaining:
+            break
+        print(f"  Waiting for {len(remaining)} target(s) to finish deleting...")
+        time.sleep(3)
 
     client.delete_gateway(gatewayIdentifier=gateway_id)
     print(f"  Deleted gateway: {name}")
