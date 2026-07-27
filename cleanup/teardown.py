@@ -22,6 +22,7 @@ LAMBDA_FUNCTIONS = [
 ]
 LAMBDA_ROLE_NAME = "agentcore-demo-lambda-exec-role"
 GATEWAY_ROLE_NAME = "agentcore-demo-gateway-exec-role"
+RUNTIME_ROLE_NAME = "agentcore-demo-runtime-exec-role"
 GATEWAY_NAME = "agentcore-demo-gateway"
 
 
@@ -154,6 +155,7 @@ def main():
     print("Deleting IAM roles...")
     delete_role_completely(iam, LAMBDA_ROLE_NAME)
     delete_role_completely(iam, GATEWAY_ROLE_NAME)
+    delete_role_completely(iam, RUNTIME_ROLE_NAME)
 
     print("Deleting CloudWatch log groups...")
     delete_log_groups(logs_client)
