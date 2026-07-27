@@ -1,0 +1,8 @@
+boto3
+strands-agents
+bedrock-agentcore
+bedrock-agentcore-starter-toolkit
+mcp-proxy-for-aws
+google-genai
+openai
+pytest
