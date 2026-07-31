@@ -2,7 +2,12 @@
 L3 - Create a Copy Error (failure simulator) Lambda.
 
 Input event:  {"dest_bucket": str, "file_name": str}
-Output:       {"file": str, "success": bool, "error": str|None}
+Output:       {"file": str, "success": bool, "error": str|None, "request_id": str,
+               "log_stream_name": str}
+
+request_id + log_stream_name let the agent fetch this exact invocation's
+CloudWatch log, the same way it does for L1 and L2 - see
+l1_copy/handler.py for why the stream name matters under parallelism.
 
 Deliberately corrupts a copied file in the destination bucket by removing
 its last 10 lines, then saves it back. Called randomly by the agent loop
@@ -38,10 +43,22 @@ def lambda_handler(event, context):
             f"{len(lines)} -> {len(corrupted_lines)} lines remaining"
         )
 
-        result = {"file": file_name, "success": True, "error": None}
+        result = {
+            "file": file_name,
+            "success": True,
+            "error": None,
+            "request_id": context.aws_request_id,
+            "log_stream_name": context.log_stream_name,
+        }
         print(f"L3 result: {result}")
         return result
 
     except Exception as exc:
         print(f"L3 ERROR corrupting {file_name}: {exc}")
-        return {"file": file_name, "success": False, "error": str(exc)}
+        return {
+            "file": file_name,
+            "success": False,
+            "error": str(exc),
+            "request_id": context.aws_request_id,
+            "log_stream_name": context.log_stream_name,
+        }

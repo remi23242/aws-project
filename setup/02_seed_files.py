@@ -29,16 +29,16 @@ def make_sample_text(index):
     return "\n".join(lines) + "\n"
 
 
-def main():
+def main(num_files=5):
     config = load_config()
     region = config["AWS_REGION"]
     bucket = config["BUCKET_SOURCE"]
     s3 = boto3.client("s3", region_name=region)
 
-    # Keep this small on purpose - the cost-first rule in CLAUDE.md says use
-    # a handful of tiny files, not a large batch.
-    num_files = 5
-
+    # Keep this small by default - the cost-first rule says use a handful of
+    # tiny files, not a large batch. Pass a count to seed more when you want
+    # to show the parallel speed-up on a bigger batch, e.g.
+    #   python setup/02_seed_files.py 20
     for i in range(1, num_files + 1):
         key = f"sample_{i:03d}.txt"
         body = make_sample_text(i)
@@ -49,4 +49,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    count = int(sys.argv[1]) if len(sys.argv) > 1 else 5
+    main(count)

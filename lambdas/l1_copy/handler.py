@@ -2,10 +2,20 @@
 L1 - Copy File Lambda.
 
 Input event:  {"source_bucket": str, "dest_bucket": str, "file_name": str}
-Output:       {"file": str, "success": bool, "original_hash": str|None, "error": str|None, "request_id": str}
+Output:       {"file": str, "success": bool, "original_hash": str|None, "error": str|None,
+               "request_id": str, "log_stream_name": str}
 
 request_id (context.aws_request_id) lets the agent fetch the EXACT CloudWatch
 log entry for this specific invocation, rather than guessing from recency.
+
+log_stream_name (context.log_stream_name) tells the agent exactly WHICH
+CloudWatch log stream that entry is in. Without it the agent has to search
+the most recently active streams, and CloudWatch updates a stream's
+"last event time" only on an eventual-consistency basis - so when several
+copies of this Lambda run at once (which is exactly what the parallel agent
+does), the freshly written stream may not appear near the top of that list
+and the log read comes back empty. Reporting it here makes the lookup
+exact and instant instead of a search.
 
 Reads the file from the source bucket, computes its SHA-256 hash, copies it
 to the destination bucket. Everything printed here shows up in CloudWatch
@@ -42,6 +52,7 @@ def lambda_handler(event, context):
             "original_hash": original_hash,
             "error": None,
             "request_id": context.aws_request_id,
+            "log_stream_name": context.log_stream_name,
         }
         print(f"L1 result: {result}")
         return result
@@ -54,4 +65,5 @@ def lambda_handler(event, context):
             "original_hash": None,
             "error": str(exc),
             "request_id": context.aws_request_id,
+            "log_stream_name": context.log_stream_name,
         }

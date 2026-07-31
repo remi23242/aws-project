@@ -20,3 +20,7 @@ CLAUDE.md
 docs/AgentCore_Project_Guide.docx
 docs/STEPS.md
 docs/generate_docx.py
+
+# Outputs written by the cloud test scripts
+cloud_tests/.last_run.json
+cloud_tests/.speed_comparison.json
