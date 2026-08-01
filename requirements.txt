@@ -1,8 +1,30 @@
-boto3
-strands-agents
-bedrock-agentcore
-bedrock-agentcore-starter-toolkit
-mcp-proxy-for-aws
-google-genai
-openai
-pytest
+# Local development environment - what you install into .venv to run the
+# setup scripts, the agent locally, the test suite and the cloud tests.
+#
+# This is NOT what goes into the deployed container. The AgentCore CLI
+# builds that from agent/pyproject.toml and agent/uv.lock, which pin the
+# same versions.
+#
+# Pinned to the versions this project was built and tested against, so it
+# installs identically today and in six months.
+
+# --- AWS ---
+boto3==1.43.57
+
+# --- The agent itself ---
+# The AgentCore Runtime SDK: provides BedrockAgentCoreApp. This is the SDK
+# and it is current - not to be confused with the deprecated
+# bedrock-agentcore-starter-toolkit CLI, which this project no longer uses.
+# Deployment is handled by the AgentCore CLI (npm: @aws/agentcore) instead.
+bedrock-agentcore==1.18.1
+# Strands' MCPClient, for calling L1/L2/L3 as Gateway tools.
+strands-agents==1.50.1
+# Signs those MCP calls to the Gateway with IAM (SigV4).
+mcp-proxy-for-aws==1.6.4
+
+# --- LLM providers (one line covers both OpenAI and Groq) ---
+openai==2.48.0
+google-genai==2.14.0
+
+# --- Testing ---
+pytest==9.1.1

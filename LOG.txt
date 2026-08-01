@@ -1,0 +1,276 @@
+[smoke test] logbook.py wired up correctly.
+
+========== AGENT RUN 2026-08-01T01:56:43Z | 5 file(s) in B1 | 5 parallel worker(s) | reasoning=async ==========
+=== Iteration 1: selected sample_004.txt from B1 ===
+--- File: sample_004.txt | Iteration: 1 | Timestamp: 2026-08-01T01:56:57Z ---
+Lambda copy_file structured output: {'file': 'sample_004.txt', 'success': True, 'original_hash': '2c914a6947cb56736168b3d5f7a4d845568f2905b0a36e833f56fd364e23580e', 'error': None, 'request_id': '49a79859-0ba3-4c32-90c3-e2f4e4c6ebc7', 'log_stream_name': '2026/08/01/[$LATEST]5c1df331f03a46739c2ccdd13c4b9457'}
+CloudWatch log text:
+START RequestId: 49a79859-0ba3-4c32-90c3-e2f4e4c6ebc7 Version: $LATEST
+L1 start: copying sample_004.txt from agentcore-demo-source-943436166595 to agentcore-demo-dest-943436166595
+L1: computed original SHA-256 for sample_004.txt: 2c914a6947cb56736168b3d5f7a4d845568f2905b0a36e833f56fd364e23580e
+L1: copied sample_004.txt to agentcore-demo-dest-943436166595
+L1 result: {'file': 'sample_004.txt', 'success': True, 'original_hash': '2c914a6947cb56736168b3d5f7a4d845568f2905b0a36e833f56fd364e23580e', 'error': None, 'request_id': '49a79859-0ba3-4c32-90c3-e2f4e4c6ebc7', 'log_stream_name': '2026/08/01/[$LATEST]5c1df331f03a46739c2ccdd13c4b9457'}
+END RequestId: 49a79859-0ba3-4c32-90c3-e2f4e4c6ebc7
+REPORT RequestId: 49a79859-0ba3-4c32-90c3-e2f4e4c6ebc7	Duration: 518.11 ms	Billed Duration: 519 ms	Memory Size: 128 MB	Max Memory Used: 96 MB	
+XRAY TraceId: 1-6a6d525e-795ce33d26448d441b75ab29	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L1 result: {'file': 'sample_004.txt', 'success': True, ..." indicates that the copy operation was successful, with 'success' explicitly set to True and 'error' set to None.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+--- File: sample_004.txt | Iteration: 1 | Timestamp: 2026-08-01T01:56:56Z ---
+Lambda verify_file structured output: {'file': 'sample_004.txt', 'original_hash': '2c914a6947cb56736168b3d5f7a4d845568f2905b0a36e833f56fd364e23580e', 'copied_hash': '2c914a6947cb56736168b3d5f7a4d845568f2905b0a36e833f56fd364e23580e', 'match': True, 'error': None, 'request_id': '2c97fed3-22a2-4e65-9aed-b139f79d62d3', 'log_stream_name': '2026/08/01/[$LATEST]c8ab4d22e93b4e7b8064e0037914aa71'}
+CloudWatch log text:
+START RequestId: 2c97fed3-22a2-4e65-9aed-b139f79d62d3 Version: $LATEST
+L2 start: verifying sample_004.txt in agentcore-demo-dest-943436166595 against hash 2c914a6947cb56736168b3d5f7a4d845568f2905b0a36e833f56fd364e23580e
+L2: copied SHA-256 for sample_004.txt: 2c914a6947cb56736168b3d5f7a4d845568f2905b0a36e833f56fd364e23580e (match=True)
+L2 result: {'file': 'sample_004.txt', 'original_hash': '2c914a6947cb56736168b3d5f7a4d845568f2905b0a36e833f56fd364e23580e', 'copied_hash': '2c914a6947cb56736168b3d5f7a4d845568f2905b0a36e833f56fd364e23580e', 'match': True, 'error': None, 'request_id': '2c97fed3-22a2-4e65-9aed-b139f79d62d3', 'log_stream_name': '2026/08/01/[$LATEST]c8ab4d22e93b4e7b8064e0037914aa71'}
+END RequestId: 2c97fed3-22a2-4e65-9aed-b139f79d62d3
+REPORT RequestId: 2c97fed3-22a2-4e65-9aed-b139f79d62d3	Duration: 334.56 ms	Billed Duration: 809 ms	Memory Size: 128 MB	Max Memory Used: 95 MB	Init Duration: 474.33 ms	
+XRAY TraceId: 1-6a6d525f-0a55280922db91dc3a43c254	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L2: copied SHA-256 for sample_004.txt: 2c914a6947cb56736168b3d5f7a4d845568f2905b0a36e833f56fd364e23580e (match=True)" indicates a successful hash match, and there are no error messages in the log.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+Final status for sample_004.txt: VERIFIED - original deleted from B1. L3 called: no. Hash comparison: MATCH.
+=== Iteration 2: selected sample_001.txt from B1 ===
+--- File: sample_001.txt | Iteration: 2 | Timestamp: 2026-08-01T01:56:54Z ---
+Lambda copy_file structured output: {'file': 'sample_001.txt', 'success': True, 'original_hash': 'f67695e4d157a7bf6d4d75e9c71e2af745c79882cdd08cf34155475d43e4ceac', 'error': None, 'request_id': '27d7baba-feeb-4efb-91af-c8e70b9a88cb', 'log_stream_name': '2026/08/01/[$LATEST]e4507c0a29e048dcbce20091a574f9b4'}
+CloudWatch log text:
+START RequestId: 27d7baba-feeb-4efb-91af-c8e70b9a88cb Version: $LATEST
+L1 start: copying sample_001.txt from agentcore-demo-source-943436166595 to agentcore-demo-dest-943436166595
+L1: computed original SHA-256 for sample_001.txt: f67695e4d157a7bf6d4d75e9c71e2af745c79882cdd08cf34155475d43e4ceac
+L1: copied sample_001.txt to agentcore-demo-dest-943436166595
+L1 result: {'file': 'sample_001.txt', 'success': True, 'original_hash': 'f67695e4d157a7bf6d4d75e9c71e2af745c79882cdd08cf34155475d43e4ceac', 'error': None, 'request_id': '27d7baba-feeb-4efb-91af-c8e70b9a88cb', 'log_stream_name': '2026/08/01/[$LATEST]e4507c0a29e048dcbce20091a574f9b4'}
+END RequestId: 27d7baba-feeb-4efb-91af-c8e70b9a88cb
+REPORT RequestId: 27d7baba-feeb-4efb-91af-c8e70b9a88cb	Duration: 567.72 ms	Billed Duration: 1084 ms	Memory Size: 128 MB	Max Memory Used: 95 MB	Init Duration: 516.01 ms	
+XRAY TraceId: 1-6a6d525f-1d99f99f2be5ed444eb2e54d	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L1 result: {'file': 'sample_001.txt', 'success': True, ..." indicates that the copy operation was successful, with 'success' explicitly set to True and 'error' set to None.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+--- File: sample_001.txt | Iteration: 2 | Timestamp: 2026-08-01T01:56:57Z ---
+Lambda verify_file structured output: {'file': 'sample_001.txt', 'original_hash': 'f67695e4d157a7bf6d4d75e9c71e2af745c79882cdd08cf34155475d43e4ceac', 'copied_hash': 'f67695e4d157a7bf6d4d75e9c71e2af745c79882cdd08cf34155475d43e4ceac', 'match': True, 'error': None, 'request_id': 'c04c7fae-1134-45f5-8bd0-fff69e37c586', 'log_stream_name': '2026/08/01/[$LATEST]c8ab4d22e93b4e7b8064e0037914aa71'}
+CloudWatch log text:
+START RequestId: c04c7fae-1134-45f5-8bd0-fff69e37c586 Version: $LATEST
+L2 start: verifying sample_001.txt in agentcore-demo-dest-943436166595 against hash f67695e4d157a7bf6d4d75e9c71e2af745c79882cdd08cf34155475d43e4ceac
+L2: copied SHA-256 for sample_001.txt: f67695e4d157a7bf6d4d75e9c71e2af745c79882cdd08cf34155475d43e4ceac (match=True)
+L2 result: {'file': 'sample_001.txt', 'original_hash': 'f67695e4d157a7bf6d4d75e9c71e2af745c79882cdd08cf34155475d43e4ceac', 'copied_hash': 'f67695e4d157a7bf6d4d75e9c71e2af745c79882cdd08cf34155475d43e4ceac', 'match': True, 'error': None, 'request_id': 'c04c7fae-1134-45f5-8bd0-fff69e37c586', 'log_stream_name': '2026/08/01/[$LATEST]c8ab4d22e93b4e7b8064e0037914aa71'}
+END RequestId: c04c7fae-1134-45f5-8bd0-fff69e37c586
+REPORT RequestId: c04c7fae-1134-45f5-8bd0-fff69e37c586	Duration: 44.00 ms	Billed Duration: 45 ms	Memory Size: 128 MB	Max Memory Used: 95 MB	
+XRAY TraceId: 1-6a6d5260-4bba6c727ac5b0fe19e98742	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L2: copied SHA-256 for sample_001.txt: f67695e4d157a7bf6d4d75e9c71e2af745c79882cdd08cf34155475d43e4ceac (match=True)" indicates a successful hash match, and there are no error messages in the log.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+Final status for sample_001.txt: VERIFIED - original deleted from B1. L3 called: no. Hash comparison: MATCH.
+=== Iteration 3: selected sample_003.txt from B1 ===
+--- File: sample_003.txt | Iteration: 3 | Timestamp: 2026-08-01T01:56:57Z ---
+Lambda copy_file structured output: {'file': 'sample_003.txt', 'success': True, 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'error': None, 'request_id': 'ab7ca51c-3870-487f-938a-223ef5c11417', 'log_stream_name': '2026/08/01/[$LATEST]5c1df331f03a46739c2ccdd13c4b9457'}
+CloudWatch log text:
+START RequestId: ab7ca51c-3870-487f-938a-223ef5c11417 Version: $LATEST
+L1 start: copying sample_003.txt from agentcore-demo-source-943436166595 to agentcore-demo-dest-943436166595
+L1: computed original SHA-256 for sample_003.txt: 5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc
+L1: copied sample_003.txt to agentcore-demo-dest-943436166595
+L1 result: {'file': 'sample_003.txt', 'success': True, 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'error': None, 'request_id': 'ab7ca51c-3870-487f-938a-223ef5c11417', 'log_stream_name': '2026/08/01/[$LATEST]5c1df331f03a46739c2ccdd13c4b9457'}
+END RequestId: ab7ca51c-3870-487f-938a-223ef5c11417
+REPORT RequestId: ab7ca51c-3870-487f-938a-223ef5c11417	Duration: 88.87 ms	Billed Duration: 89 ms	Memory Size: 128 MB	Max Memory Used: 96 MB	
+XRAY TraceId: 1-6a6d525f-3d6b846c2b50a066132e1616	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L1 result: {'file': 'sample_003.txt', 'success': True, ..." indicates that the copy operation was successful, with 'success' explicitly set to True and 'error' set to None.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+--- File: sample_003.txt | Iteration: 3 | Timestamp: 2026-08-01T01:56:58Z ---
+Lambda corrupt_file structured output: {'file': 'sample_003.txt', 'success': True, 'error': None, 'request_id': '0e106d9e-b1a8-4fc4-bd4a-958eda52a534', 'log_stream_name': '2026/08/01/[$LATEST]bae05421de104f51b8a2c56cc9a449c2'}
+CloudWatch log text:
+START RequestId: 0e106d9e-b1a8-4fc4-bd4a-958eda52a534 Version: $LATEST
+L3 start: corrupting sample_003.txt in agentcore-demo-dest-943436166595 (removing last 10 lines)
+L3: removed last 10 lines from sample_003.txt, 21 -> 11 lines remaining
+L3 result: {'file': 'sample_003.txt', 'success': True, 'error': None, 'request_id': '0e106d9e-b1a8-4fc4-bd4a-958eda52a534', 'log_stream_name': '2026/08/01/[$LATEST]bae05421de104f51b8a2c56cc9a449c2'}
+END RequestId: 0e106d9e-b1a8-4fc4-bd4a-958eda52a534
+REPORT RequestId: 0e106d9e-b1a8-4fc4-bd4a-958eda52a534	Duration: 374.71 ms	Billed Duration: 910 ms	Memory Size: 128 MB	Max Memory Used: 96 MB	Init Duration: 535.08 ms	
+XRAY TraceId: 1-6a6d525f-321ad38079b00e61653e3e2f	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L3 result: {'file': 'sample_003.txt', 'success': True, 'error': None, ..." indicates that the operation was successful with no error, and the "END" and "REPORT" lines do not indicate any failure.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+--- File: sample_003.txt | Iteration: 3 | Timestamp: 2026-08-01T01:56:54Z ---
+Lambda verify_file structured output: {'file': 'sample_003.txt', 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'copied_hash': '5e570a309676283cbfa613e40ce8dfd8357b57664e41bd6d86052fbe68bb91a7', 'match': False, 'error': None, 'request_id': '16263b26-8dd1-42e5-8ba8-f5d20a3a1f2b', 'log_stream_name': '2026/08/01/[$LATEST]da96dc61cc5f466eb2b4fc5aa41daaba'}
+CloudWatch log text:
+START RequestId: 16263b26-8dd1-42e5-8ba8-f5d20a3a1f2b Version: $LATEST
+L2 start: verifying sample_003.txt in agentcore-demo-dest-943436166595 against hash 5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc
+L2: copied SHA-256 for sample_003.txt: 5e570a309676283cbfa613e40ce8dfd8357b57664e41bd6d86052fbe68bb91a7 (match=False)
+L2 result: {'file': 'sample_003.txt', 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'copied_hash': '5e570a309676283cbfa613e40ce8dfd8357b57664e41bd6d86052fbe68bb91a7', 'match': False, 'error': None, 'request_id': '16263b26-8dd1-42e5-8ba8-f5d20a3a1f2b', 'log_stream_name': '2026/08/01/[$LATEST]da96dc61cc5f466eb2b4fc5aa41daaba'}
+END RequestId: 16263b26-8dd1-42e5-8ba8-f5d20a3a1f2b
+REPORT RequestId: 16263b26-8dd1-42e5-8ba8-f5d20a3a1f2b	Duration: 59.09 ms	Billed Duration: 60 ms	Memory Size: 128 MB	Max Memory Used: 95 MB	
+XRAY TraceId: 1-6a6d5261-31c8490e5fa5691715b86c8e	Sampled: true	
+Agent LLM conclusion: FAILURE
+The operation failed because the log line "L2: copied SHA-256 for sample_003.txt: 5e570a309676283cbfa613e40ce8dfd8357b57664e41bd6d86052fbe68bb91a7 (match=False)" indicates that the hash of the copied file does not match the original hash.
+COMPARISON: Lambda says FAILURE, Agent concludes FAILURE -> MATCH
+Final status for sample_003.txt: VERIFICATION FAILED - original kept in B1. L3 called: yes. Hash comparison: MISMATCH.
+=== Iteration 4: selected sample_002.txt from B1 ===
+--- File: sample_002.txt | Iteration: 4 | Timestamp: 2026-08-01T01:56:57Z ---
+Lambda copy_file structured output: {'file': 'sample_002.txt', 'success': True, 'original_hash': '259bc4d60d488094c1471d4243c24df15a83ec58479b923067dbbd5562f9d08a', 'error': None, 'request_id': 'ce3171fd-785a-4e87-ae39-60e6f41e498c', 'log_stream_name': '2026/08/01/[$LATEST]5c1df331f03a46739c2ccdd13c4b9457'}
+CloudWatch log text:
+START RequestId: ce3171fd-785a-4e87-ae39-60e6f41e498c Version: $LATEST
+L1 start: copying sample_002.txt from agentcore-demo-source-943436166595 to agentcore-demo-dest-943436166595
+L1: computed original SHA-256 for sample_002.txt: 259bc4d60d488094c1471d4243c24df15a83ec58479b923067dbbd5562f9d08a
+L1: copied sample_002.txt to agentcore-demo-dest-943436166595
+L1 result: {'file': 'sample_002.txt', 'success': True, 'original_hash': '259bc4d60d488094c1471d4243c24df15a83ec58479b923067dbbd5562f9d08a', 'error': None, 'request_id': 'ce3171fd-785a-4e87-ae39-60e6f41e498c', 'log_stream_name': '2026/08/01/[$LATEST]5c1df331f03a46739c2ccdd13c4b9457'}
+END RequestId: ce3171fd-785a-4e87-ae39-60e6f41e498c
+REPORT RequestId: ce3171fd-785a-4e87-ae39-60e6f41e498c	Duration: 55.39 ms	Billed Duration: 56 ms	Memory Size: 128 MB	Max Memory Used: 96 MB	
+XRAY TraceId: 1-6a6d525f-5e594a5b5f57ca1a7ddc9fba	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L1 result: {'file': 'sample_002.txt', 'success': True, ..." indicates that the file copy operation was successful, with 'success' explicitly set to True and 'error' set to None.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+--- File: sample_002.txt | Iteration: 4 | Timestamp: 2026-08-01T01:56:54Z ---
+Lambda verify_file structured output: {'file': 'sample_002.txt', 'original_hash': '259bc4d60d488094c1471d4243c24df15a83ec58479b923067dbbd5562f9d08a', 'copied_hash': '259bc4d60d488094c1471d4243c24df15a83ec58479b923067dbbd5562f9d08a', 'match': True, 'error': None, 'request_id': '4a1006fe-207b-4d3b-8d54-9609312530e3', 'log_stream_name': '2026/08/01/[$LATEST]da96dc61cc5f466eb2b4fc5aa41daaba'}
+CloudWatch log text:
+START RequestId: 4a1006fe-207b-4d3b-8d54-9609312530e3 Version: $LATEST
+L2 start: verifying sample_002.txt in agentcore-demo-dest-943436166595 against hash 259bc4d60d488094c1471d4243c24df15a83ec58479b923067dbbd5562f9d08a
+L2: copied SHA-256 for sample_002.txt: 259bc4d60d488094c1471d4243c24df15a83ec58479b923067dbbd5562f9d08a (match=True)
+L2 result: {'file': 'sample_002.txt', 'original_hash': '259bc4d60d488094c1471d4243c24df15a83ec58479b923067dbbd5562f9d08a', 'copied_hash': '259bc4d60d488094c1471d4243c24df15a83ec58479b923067dbbd5562f9d08a', 'match': True, 'error': None, 'request_id': '4a1006fe-207b-4d3b-8d54-9609312530e3', 'log_stream_name': '2026/08/01/[$LATEST]da96dc61cc5f466eb2b4fc5aa41daaba'}
+END RequestId: 4a1006fe-207b-4d3b-8d54-9609312530e3
+REPORT RequestId: 4a1006fe-207b-4d3b-8d54-9609312530e3	Duration: 334.72 ms	Billed Duration: 834 ms	Memory Size: 128 MB	Max Memory Used: 95 MB	Init Duration: 498.35 ms	
+XRAY TraceId: 1-6a6d5260-454a94fa6b8ad4b06b408ca7	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L2: copied SHA-256 for sample_002.txt: 259bc4d60d488094c1471d4243c24df15a83ec58479b923067dbbd5562f9d08a (match=True)" indicates a successful hash match, and there are no error messages in the log.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+Final status for sample_002.txt: VERIFIED - original deleted from B1. L3 called: no. Hash comparison: MATCH.
+=== Iteration 5: selected sample_005.txt from B1 ===
+--- File: sample_005.txt | Iteration: 5 | Timestamp: 2026-08-01T01:56:57Z ---
+Lambda copy_file structured output: {'file': 'sample_005.txt', 'success': True, 'original_hash': '2e0f0c2e949b159318cf6ad8d88c72841de5d60128237274a00697188aaa582d', 'error': None, 'request_id': 'd848313c-c6bf-4939-a17b-2b105b889f84', 'log_stream_name': '2026/08/01/[$LATEST]5c1df331f03a46739c2ccdd13c4b9457'}
+CloudWatch log text:
+START RequestId: d848313c-c6bf-4939-a17b-2b105b889f84 Version: $LATEST
+L1 start: copying sample_005.txt from agentcore-demo-source-943436166595 to agentcore-demo-dest-943436166595
+L1: computed original SHA-256 for sample_005.txt: 2e0f0c2e949b159318cf6ad8d88c72841de5d60128237274a00697188aaa582d
+L1: copied sample_005.txt to agentcore-demo-dest-943436166595
+L1 result: {'file': 'sample_005.txt', 'success': True, 'original_hash': '2e0f0c2e949b159318cf6ad8d88c72841de5d60128237274a00697188aaa582d', 'error': None, 'request_id': 'd848313c-c6bf-4939-a17b-2b105b889f84', 'log_stream_name': '2026/08/01/[$LATEST]5c1df331f03a46739c2ccdd13c4b9457'}
+END RequestId: d848313c-c6bf-4939-a17b-2b105b889f84
+REPORT RequestId: d848313c-c6bf-4939-a17b-2b105b889f84	Duration: 84.00 ms	Billed Duration: 84 ms	Memory Size: 128 MB	Max Memory Used: 96 MB	
+XRAY TraceId: 1-6a6d525f-645f314464a80e3a4668ba25	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L1 result: {'file': 'sample_005.txt', 'success': True, ..." indicates that the copy operation was successful, and there is no error message in the log.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+--- File: sample_005.txt | Iteration: 5 | Timestamp: 2026-08-01T01:56:54Z ---
+Lambda verify_file structured output: {'file': 'sample_005.txt', 'original_hash': '2e0f0c2e949b159318cf6ad8d88c72841de5d60128237274a00697188aaa582d', 'copied_hash': '2e0f0c2e949b159318cf6ad8d88c72841de5d60128237274a00697188aaa582d', 'match': True, 'error': None, 'request_id': '1d3a4f07-f027-4e6c-bf5f-f1d6cfc510a3', 'log_stream_name': '2026/08/01/[$LATEST]9c24116f8bf34ba08785b9ff788ff999'}
+CloudWatch log text:
+START RequestId: 1d3a4f07-f027-4e6c-bf5f-f1d6cfc510a3 Version: $LATEST
+L2 start: verifying sample_005.txt in agentcore-demo-dest-943436166595 against hash 2e0f0c2e949b159318cf6ad8d88c72841de5d60128237274a00697188aaa582d
+L2: copied SHA-256 for sample_005.txt: 2e0f0c2e949b159318cf6ad8d88c72841de5d60128237274a00697188aaa582d (match=True)
+L2 result: {'file': 'sample_005.txt', 'original_hash': '2e0f0c2e949b159318cf6ad8d88c72841de5d60128237274a00697188aaa582d', 'copied_hash': '2e0f0c2e949b159318cf6ad8d88c72841de5d60128237274a00697188aaa582d', 'match': True, 'error': None, 'request_id': '1d3a4f07-f027-4e6c-bf5f-f1d6cfc510a3', 'log_stream_name': '2026/08/01/[$LATEST]9c24116f8bf34ba08785b9ff788ff999'}
+END RequestId: 1d3a4f07-f027-4e6c-bf5f-f1d6cfc510a3
+REPORT RequestId: 1d3a4f07-f027-4e6c-bf5f-f1d6cfc510a3	Duration: 330.77 ms	Billed Duration: 834 ms	Memory Size: 128 MB	Max Memory Used: 93 MB	Init Duration: 502.44 ms	
+XRAY TraceId: 1-6a6d5260-1634901468b05e5c1bbcdea6	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L2: copied SHA-256 for sample_005.txt: 2e0f0c2e949b159318cf6ad8d88c72841de5d60128237274a00697188aaa582d (match=True)" indicates a successful hash match, and there are no error messages in the log.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+Final status for sample_005.txt: VERIFIED - original deleted from B1. L3 called: no. Hash comparison: MATCH.
+=== Iteration 6: selected sample_003.txt from B1 ===
+--- File: sample_003.txt | Iteration: 6 | Timestamp: 2026-08-01T01:56:54Z ---
+Lambda copy_file structured output: {'file': 'sample_003.txt', 'success': True, 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'error': None, 'request_id': '2828a8cb-f8f4-4953-989b-2227785f9410', 'log_stream_name': '2026/08/01/[$LATEST]e4507c0a29e048dcbce20091a574f9b4'}
+CloudWatch log text:
+START RequestId: 2828a8cb-f8f4-4953-989b-2227785f9410 Version: $LATEST
+L1 start: copying sample_003.txt from agentcore-demo-source-943436166595 to agentcore-demo-dest-943436166595
+L1: computed original SHA-256 for sample_003.txt: 5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc
+L1: copied sample_003.txt to agentcore-demo-dest-943436166595
+L1 result: {'file': 'sample_003.txt', 'success': True, 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'error': None, 'request_id': '2828a8cb-f8f4-4953-989b-2227785f9410', 'log_stream_name': '2026/08/01/[$LATEST]e4507c0a29e048dcbce20091a574f9b4'}
+END RequestId: 2828a8cb-f8f4-4953-989b-2227785f9410
+REPORT RequestId: 2828a8cb-f8f4-4953-989b-2227785f9410	Duration: 87.46 ms	Billed Duration: 88 ms	Memory Size: 128 MB	Max Memory Used: 95 MB	
+XRAY TraceId: 1-6a6d5262-033f21ec5424253d33b9726e	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L1 result: {'file': 'sample_003.txt', 'success': True, ..." explicitly states that the operation was successful, and there are no error messages in the log.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+--- File: sample_003.txt | Iteration: 6 | Timestamp: 2026-08-01T01:56:59Z ---
+Lambda corrupt_file structured output: {'file': 'sample_003.txt', 'success': True, 'error': None, 'request_id': 'd2908f14-eefa-48a3-9dbc-352b3a45ab98', 'log_stream_name': '2026/08/01/[$LATEST]bae05421de104f51b8a2c56cc9a449c2'}
+CloudWatch log text:
+START RequestId: d2908f14-eefa-48a3-9dbc-352b3a45ab98 Version: $LATEST
+L3 start: corrupting sample_003.txt in agentcore-demo-dest-943436166595 (removing last 10 lines)
+L3: removed last 10 lines from sample_003.txt, 21 -> 11 lines remaining
+L3 result: {'file': 'sample_003.txt', 'success': True, 'error': None, 'request_id': 'd2908f14-eefa-48a3-9dbc-352b3a45ab98', 'log_stream_name': '2026/08/01/[$LATEST]bae05421de104f51b8a2c56cc9a449c2'}
+END RequestId: d2908f14-eefa-48a3-9dbc-352b3a45ab98
+REPORT RequestId: d2908f14-eefa-48a3-9dbc-352b3a45ab98	Duration: 82.08 ms	Billed Duration: 83 ms	Memory Size: 128 MB	Max Memory Used: 97 MB	
+XRAY TraceId: 1-6a6d5262-5c4fb696468c1fca2aca6e7e	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L3 result: {'file': 'sample_003.txt', 'success': True, 'error': None, ..." indicates that the operation completed with 'success' set to True and no error reported.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+--- File: sample_003.txt | Iteration: 6 | Timestamp: 2026-08-01T01:56:56Z ---
+Lambda verify_file structured output: {'file': 'sample_003.txt', 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'copied_hash': '5e570a309676283cbfa613e40ce8dfd8357b57664e41bd6d86052fbe68bb91a7', 'match': False, 'error': None, 'request_id': '7ebddac7-95b8-4240-a742-eab6c28ecf2a', 'log_stream_name': '2026/08/01/[$LATEST]9c24116f8bf34ba08785b9ff788ff999'}
+CloudWatch log text:
+START RequestId: 7ebddac7-95b8-4240-a742-eab6c28ecf2a Version: $LATEST
+L2 start: verifying sample_003.txt in agentcore-demo-dest-943436166595 against hash 5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc
+L2: copied SHA-256 for sample_003.txt: 5e570a309676283cbfa613e40ce8dfd8357b57664e41bd6d86052fbe68bb91a7 (match=False)
+L2 result: {'file': 'sample_003.txt', 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'copied_hash': '5e570a309676283cbfa613e40ce8dfd8357b57664e41bd6d86052fbe68bb91a7', 'match': False, 'error': None, 'request_id': '7ebddac7-95b8-4240-a742-eab6c28ecf2a', 'log_stream_name': '2026/08/01/[$LATEST]9c24116f8bf34ba08785b9ff788ff999'}
+END RequestId: 7ebddac7-95b8-4240-a742-eab6c28ecf2a
+REPORT RequestId: 7ebddac7-95b8-4240-a742-eab6c28ecf2a	Duration: 34.83 ms	Billed Duration: 35 ms	Memory Size: 128 MB	Max Memory Used: 93 MB	
+XRAY TraceId: 1-6a6d5263-21f57db175cff87a1d381ed0	Sampled: true	
+Agent LLM conclusion: FAILURE
+The operation failed because the log line "L2: copied SHA-256 for sample_003.txt: 5e570a309676283cbfa613e40ce8dfd8357b57664e41bd6d86052fbe68bb91a7 (match=False)" indicates that the hash of the copied file does not match the original hash.
+COMPARISON: Lambda says FAILURE, Agent concludes FAILURE -> MATCH
+Final status for sample_003.txt: VERIFICATION FAILED - original kept in B1. L3 called: yes. Hash comparison: MISMATCH.
+=== Iteration 7: selected sample_003.txt from B1 ===
+--- File: sample_003.txt | Iteration: 7 | Timestamp: 2026-08-01T01:57:02Z ---
+Lambda copy_file structured output: {'file': 'sample_003.txt', 'success': True, 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'error': None, 'request_id': 'd1e7cde1-6049-43f6-be58-b2342142aa58', 'log_stream_name': '2026/08/01/[$LATEST]e4507c0a29e048dcbce20091a574f9b4'}
+CloudWatch log text:
+START RequestId: d1e7cde1-6049-43f6-be58-b2342142aa58 Version: $LATEST
+L1 start: copying sample_003.txt from agentcore-demo-source-943436166595 to agentcore-demo-dest-943436166595
+L1: computed original SHA-256 for sample_003.txt: 5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc
+L1: copied sample_003.txt to agentcore-demo-dest-943436166595
+L1 result: {'file': 'sample_003.txt', 'success': True, 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'error': None, 'request_id': 'd1e7cde1-6049-43f6-be58-b2342142aa58', 'log_stream_name': '2026/08/01/[$LATEST]e4507c0a29e048dcbce20091a574f9b4'}
+END RequestId: d1e7cde1-6049-43f6-be58-b2342142aa58
+REPORT RequestId: d1e7cde1-6049-43f6-be58-b2342142aa58	Duration: 73.32 ms	Billed Duration: 74 ms	Memory Size: 128 MB	Max Memory Used: 95 MB	
+XRAY TraceId: 1-6a6d5264-5201348e2933aead536bde03	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L1 result: {'file': 'sample_003.txt', 'success': True, ..." indicates that the copy operation was successful, with 'success' explicitly set to True and 'error' set to None.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+--- File: sample_003.txt | Iteration: 7 | Timestamp: 2026-08-01T01:56:58Z ---
+Lambda corrupt_file structured output: {'file': 'sample_003.txt', 'success': True, 'error': None, 'request_id': '7ab0ab2b-8df6-47e1-a3ce-c1009873835d', 'log_stream_name': '2026/08/01/[$LATEST]bae05421de104f51b8a2c56cc9a449c2'}
+CloudWatch log text:
+START RequestId: 7ab0ab2b-8df6-47e1-a3ce-c1009873835d Version: $LATEST
+L3 start: corrupting sample_003.txt in agentcore-demo-dest-943436166595 (removing last 10 lines)
+L3: removed last 10 lines from sample_003.txt, 21 -> 11 lines remaining
+L3 result: {'file': 'sample_003.txt', 'success': True, 'error': None, 'request_id': '7ab0ab2b-8df6-47e1-a3ce-c1009873835d', 'log_stream_name': '2026/08/01/[$LATEST]bae05421de104f51b8a2c56cc9a449c2'}
+END RequestId: 7ab0ab2b-8df6-47e1-a3ce-c1009873835d
+REPORT RequestId: 7ab0ab2b-8df6-47e1-a3ce-c1009873835d	Duration: 75.04 ms	Billed Duration: 76 ms	Memory Size: 128 MB	Max Memory Used: 97 MB	
+XRAY TraceId: 1-6a6d5264-172bdbb3026970602a4bb108	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L3 result: {'file': 'sample_003.txt', 'success': True, 'error': None, ..." indicates that the operation was successful with no error, and the "END" and "REPORT" lines also suggest a normal completion of the Lambda function.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+--- File: sample_003.txt | Iteration: 7 | Timestamp: 2026-08-01T01:56:55Z ---
+Lambda verify_file structured output: {'file': 'sample_003.txt', 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'copied_hash': '5e570a309676283cbfa613e40ce8dfd8357b57664e41bd6d86052fbe68bb91a7', 'match': False, 'error': None, 'request_id': 'c23870c8-9dd2-4a52-9f91-2056e9c8d9b2', 'log_stream_name': '2026/08/01/[$LATEST]9c24116f8bf34ba08785b9ff788ff999'}
+CloudWatch log text:
+START RequestId: c23870c8-9dd2-4a52-9f91-2056e9c8d9b2 Version: $LATEST
+L2 start: verifying sample_003.txt in agentcore-demo-dest-943436166595 against hash 5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc
+L2: copied SHA-256 for sample_003.txt: 5e570a309676283cbfa613e40ce8dfd8357b57664e41bd6d86052fbe68bb91a7 (match=False)
+L2 result: {'file': 'sample_003.txt', 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'copied_hash': '5e570a309676283cbfa613e40ce8dfd8357b57664e41bd6d86052fbe68bb91a7', 'match': False, 'error': None, 'request_id': 'c23870c8-9dd2-4a52-9f91-2056e9c8d9b2', 'log_stream_name': '2026/08/01/[$LATEST]9c24116f8bf34ba08785b9ff788ff999'}
+END RequestId: c23870c8-9dd2-4a52-9f91-2056e9c8d9b2
+REPORT RequestId: c23870c8-9dd2-4a52-9f91-2056e9c8d9b2	Duration: 42.73 ms	Billed Duration: 43 ms	Memory Size: 128 MB	Max Memory Used: 93 MB	
+XRAY TraceId: 1-6a6d5265-7f1d47e35d4d5f5639c218bf	Sampled: true	
+Agent LLM conclusion: FAILURE
+The operation failed because the log line "L2: copied SHA-256 for sample_003.txt: 5e570a309676283cbfa613e40ce8dfd8357b57664e41bd6d86052fbe68bb91a7 (match=False)" indicates that the hash of the copied file does not match the original hash.
+COMPARISON: Lambda says FAILURE, Agent concludes FAILURE -> MATCH
+Final status for sample_003.txt: VERIFICATION FAILED - original kept in B1. L3 called: yes. Hash comparison: MISMATCH.
+=== Iteration 8: selected sample_003.txt from B1 ===
+--- File: sample_003.txt | Iteration: 8 | Timestamp: 2026-08-01T01:57:03Z ---
+Lambda copy_file structured output: {'file': 'sample_003.txt', 'success': True, 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'error': None, 'request_id': '3d1747c3-7f12-4f5b-8a19-45b5060df94f', 'log_stream_name': '2026/08/01/[$LATEST]e4507c0a29e048dcbce20091a574f9b4'}
+CloudWatch log text:
+START RequestId: 3d1747c3-7f12-4f5b-8a19-45b5060df94f Version: $LATEST
+L1 start: copying sample_003.txt from agentcore-demo-source-943436166595 to agentcore-demo-dest-943436166595
+L1: computed original SHA-256 for sample_003.txt: 5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc
+L1: copied sample_003.txt to agentcore-demo-dest-943436166595
+L1 result: {'file': 'sample_003.txt', 'success': True, 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'error': None, 'request_id': '3d1747c3-7f12-4f5b-8a19-45b5060df94f', 'log_stream_name': '2026/08/01/[$LATEST]e4507c0a29e048dcbce20091a574f9b4'}
+END RequestId: 3d1747c3-7f12-4f5b-8a19-45b5060df94f
+REPORT RequestId: 3d1747c3-7f12-4f5b-8a19-45b5060df94f	Duration: 88.99 ms	Billed Duration: 89 ms	Memory Size: 128 MB	Max Memory Used: 95 MB	
+XRAY TraceId: 1-6a6d5266-131f194649bb4e1a4b0ad0bd	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L1 result: {'file': 'sample_003.txt', 'success': True, ..." indicates that the file copy operation was successful, with 'success' explicitly set to True and 'error' set to None.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+--- File: sample_003.txt | Iteration: 8 | Timestamp: 2026-08-01T01:57:06Z ---
+Lambda verify_file structured output: {'file': 'sample_003.txt', 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'copied_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'match': True, 'error': None, 'request_id': 'b64294de-5952-4a7b-ae1f-edc43366a334', 'log_stream_name': '2026/08/01/[$LATEST]9c24116f8bf34ba08785b9ff788ff999'}
+CloudWatch log text:
+START RequestId: b64294de-5952-4a7b-ae1f-edc43366a334 Version: $LATEST
+L2 start: verifying sample_003.txt in agentcore-demo-dest-943436166595 against hash 5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc
+L2: copied SHA-256 for sample_003.txt: 5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc (match=True)
+L2 result: {'file': 'sample_003.txt', 'original_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'copied_hash': '5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc', 'match': True, 'error': None, 'request_id': 'b64294de-5952-4a7b-ae1f-edc43366a334', 'log_stream_name': '2026/08/01/[$LATEST]9c24116f8bf34ba08785b9ff788ff999'}
+END RequestId: b64294de-5952-4a7b-ae1f-edc43366a334
+REPORT RequestId: b64294de-5952-4a7b-ae1f-edc43366a334	Duration: 47.32 ms	Billed Duration: 48 ms	Memory Size: 128 MB	Max Memory Used: 93 MB	
+XRAY TraceId: 1-6a6d5266-414a4fcd3d078fb955e1048f	Sampled: true	
+Agent LLM conclusion: SUCCESS
+The operation succeeded because the log line "L2: copied SHA-256 for sample_003.txt: 5f2cbdec1605604143bc6fbd2da08c5ab95369d9abfcea1ab07bf7cd79c372bc (match=True)" indicates a successful hash match, and there are no error messages in the log.
+COMPARISON: Lambda says SUCCESS, Agent concludes SUCCESS -> MATCH
+Final status for sample_003.txt: VERIFIED - original deleted from B1. L3 called: no. Hash comparison: MATCH.
+========== RUN COMPLETE | 8 iteration(s) | 8 file-pass(es) | 25.48s wall clock | 5 parallel worker(s) ==========
+Time spent (summed across all threads, so larger than wall clock): cloudwatch_log_read: 134.48s over 19 call(s), avg 7.08s | gateway_lambda_call: 13.17s over 19 call(s), avg 0.69s | llm_reasoning: 18.36s over 19 call(s), avg 0.97s

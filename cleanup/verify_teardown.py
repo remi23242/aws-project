@@ -31,11 +31,10 @@ IAM_ROLES = [
     "agentcore-demo-gateway-exec-role",
     "agentcore-demo-runtime-exec-role",
 ]
-TOOLKIT_ROLE_PREFIX = "AmazonBedrockAgentCoreSDKCodeBuild-"
-AGENT_NAME = "agentcore"
 GATEWAY_NAME = "agentcore-demo-gateway"
-ECR_REPOSITORY = "bedrock-agentcore-agentcore"
-CODEBUILD_PROJECT = "bedrock-agentcore-agentcore-builder"
+PROJECT_NAME = "agentcoredemo"
+STACK_NAME = f"AgentCore-{PROJECT_NAME}-default"
+CDK_BOOTSTRAP_STACK = "CDKToolkit"
 
 
 def load_config(path=None):
@@ -52,7 +51,6 @@ def load_config(path=None):
 
 
 def report(survivors, label, still_there):
-    """still_there is a list of names that should not exist."""
     if still_there:
         survivors.extend(f"{label}: {name}" for name in still_there)
         print(f"{ALIVE} {label}")
@@ -70,12 +68,21 @@ def main():
     print(f"Checking account {account_id} in {region} for leftovers...\n")
     survivors = []
 
-    control = boto3.client("bedrock-agentcore-control", region_name=region)
+    # The stack owns the Runtime, its ECR repository, the build project and
+    # several IAM roles - so if the stack is gone, all of those are too.
+    cfn = boto3.client("cloudformation", region_name=region)
+    try:
+        cfn.describe_stacks(StackName=STACK_NAME)
+        stacks = [STACK_NAME]
+    except ClientError:
+        stacks = []
+    report(survivors, "AgentCore CloudFormation stack", stacks)
 
+    control = boto3.client("bedrock-agentcore-control", region_name=region)
     runtimes = [
-        r["agentRuntimeName"]
+        r.get("agentRuntimeName")
         for r in control.list_agent_runtimes().get("agentRuntimes", [])
-        if r.get("agentRuntimeName") == AGENT_NAME
+        if (r.get("agentRuntimeName") or "").startswith(PROJECT_NAME)
     ]
     report(survivors, "AgentCore Runtime agent", runtimes)
 
@@ -95,26 +102,16 @@ def main():
     report(survivors, "Lambda functions", alive)
 
     ecr = boto3.client("ecr", region_name=region)
-    try:
-        ecr.describe_repositories(repositoryNames=[ECR_REPOSITORY])
-        repos = [ECR_REPOSITORY]
-    except ClientError:
-        repos = []
+    repos = [
+        r["repositoryName"]
+        for r in ecr.describe_repositories().get("repositories", [])
+        if r["repositoryName"].startswith(PROJECT_NAME)
+    ]
     report(survivors, "ECR repository", repos)
 
-    codebuild = boto3.client("codebuild", region_name=region)
-    projects = [p for p in codebuild.list_projects().get("projects", []) if p == CODEBUILD_PROJECT]
-    report(survivors, "CodeBuild project", projects)
-
     s3 = boto3.client("s3", region_name=region)
-    buckets = [
-        config["BUCKET_SOURCE"],
-        config["BUCKET_DEST"],
-        config["BUCKET_LOG"],
-        f"bedrock-agentcore-codebuild-sources-{account_id}-{region}",
-    ]
     alive = []
-    for bucket in buckets:
+    for bucket in (config["BUCKET_SOURCE"], config["BUCKET_DEST"], config["BUCKET_LOG"]):
         try:
             s3.head_bucket(Bucket=bucket)
             alive.append(bucket)
@@ -130,20 +127,11 @@ def main():
             alive.append(name)
         except ClientError:
             pass
-    paginator = iam.get_paginator("list_roles")
-    for page in paginator.paginate():
-        alive.extend(
-            r["RoleName"] for r in page["Roles"] if r["RoleName"].startswith(TOOLKIT_ROLE_PREFIX)
-        )
     report(survivors, "IAM roles", alive)
 
     logs_client = boto3.client("logs", region_name=region)
     alive = []
-    for prefix in [
-        "/aws/lambda/agentcore-demo-",
-        "/aws/bedrock-agentcore/runtimes/",
-        f"/aws/codebuild/{CODEBUILD_PROJECT}",
-    ]:
+    for prefix in ["/aws/lambda/agentcore-demo-", "/aws/bedrock-agentcore/runtimes/"]:
         for page in logs_client.get_paginator("describe_log_groups").paginate(logGroupNamePrefix=prefix):
             alive.extend(g["logGroupName"] for g in page["logGroups"])
     report(survivors, "CloudWatch log groups", alive)
@@ -157,9 +145,14 @@ def main():
         return 1
 
     print(f"{GONE} Nothing left. The account is clean and this project costs nothing.")
-    print("\nNote: AWSServiceRoleForBedrockAgentCoreRuntimeIdentity may remain.")
-    print("      That is an AWS-managed service-linked role, it is free, and it is")
-    print("      shared with any other AgentCore work in the account - leave it.")
+    print()
+    print("Two things may remain, both deliberate:")
+    print(f"  - The {CDK_BOOTSTRAP_STACK} stack: CDK's shared bootstrap for this account and")
+    print("    region. Used by any CDK project, not just this one. Remove it with")
+    print("    `python cleanup/teardown.py --include-cdk-bootstrap` if this account")
+    print("    is used for nothing else.")
+    print("  - AWSServiceRoleForBedrockAgentCoreRuntimeIdentity: an AWS-managed")
+    print("    service-linked role. It is free and shared - leave it.")
     return 0
 
 

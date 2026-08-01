@@ -174,14 +174,15 @@ def create_gateway_exec_role(iam, sts, config):
 
 def create_runtime_exec_role(iam, sts, config):
     """Pre-create the AgentCore Runtime execution role ourselves, fully
-    permissioned, BEFORE `agentcore configure`/`deploy` ever runs. Passing
-    this role's ARN to `agentcore configure --execution-role` means the
-    deployed container has everything it needs on the FIRST deploy - no
-    auto-created bare-minimum role, no redeploy-after-fixing-permissions
-    needed. Combines AWS's documented baseline Runtime execution
-    permissions (ECR pull, CloudWatch, X-Ray, Bedrock invoke, workload
-    tokens) with what THIS agent specifically needs (S3 buckets, Gateway,
-    reading L1/L2/L3's CloudWatch logs)."""
+    permissioned, BEFORE `agentcore deploy` ever runs.
+    setup/06_configure_runtime.py writes this role's ARN into
+    agentcore/agentcore.json as executionRoleArn, so the deployed container
+    has everything it needs on the FIRST deploy - no auto-created
+    bare-minimum role, no redeploy-after-fixing-permissions needed. Combines
+    AWS's documented baseline Runtime execution permissions (ECR pull,
+    CloudWatch, X-Ray, Bedrock invoke, workload tokens) with what THIS agent
+    specifically needs (S3 buckets, Gateway, reading L1/L2/L3's CloudWatch
+    logs)."""
     account_id = sts.get_caller_identity()["Account"]
     region = config["AWS_REGION"]
 
@@ -351,8 +352,9 @@ def main():
     runtime_role_arn = create_runtime_exec_role(iam, sts, config)
     print(f"Runtime exec role ARN: {runtime_role_arn}")
     print()
-    print("Use this when configuring the Runtime deployment:")
-    print(f"  agentcore configure -e agent/agent.py --execution-role {runtime_role_arn}")
+    print("Next: setup/06_configure_runtime.py picks this role up automatically")
+    print("and writes it into agentcore/agentcore.json, so there is nothing to")
+    print("copy by hand.")
 
 
 if __name__ == "__main__":

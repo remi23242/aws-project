@@ -1,27 +1,40 @@
 """
-Delete EVERY AWS resource this project created, in dependency order, so
-nothing keeps costing money after you're done with it.
+Delete EVERY AWS resource this project created, so nothing keeps costing
+money after you're done with it.
 
-This includes the deployed AgentCore Runtime agent, its container image and
-ECR repository, and the CodeBuild project that built it - so a single run
-of this script takes the account back to how it was before Part 1. You do
-not need to run `agentcore destroy` separately any more.
+The project now creates resources two different ways, and they have to be
+removed differently:
+
+  * The Runtime agent and everything supporting it (its container image,
+    ECR repository, the CodeBuild project that builds it, the encryption
+    key and several IAM roles) are deployed by the AgentCore CLI through
+    CloudFormation, as one stack. Those are removed by deleting the stack -
+    NOT by deleting resources individually. Deleting a stack's resources
+    behind its back leaves the stack stuck in DELETE_FAILED.
+
+  * Everything else - the S3 buckets, the three Lambda functions, the
+    Gateway and its targets, and the IAM roles created by setup/03 - is
+    created directly with boto3, so it is removed the same way.
 
 What it removes:
-    1.  The AgentCore Runtime agent and its endpoints
+    1.  The CloudFormation stack: Runtime, ECR repo + images, KMS key,
+        CodeBuild project, build Lambda, and the IAM roles CDK created
     2.  The AgentCore Gateway and its three targets
     3.  The three Lambda functions
-    4.  The ECR repository and every image in it
-    5.  The CodeBuild project that builds the container
-    6.  All four S3 buckets (the three demo buckets + CodeBuild's source bucket)
-    7.  Every IAM role this project caused to exist, including the one the
-        AgentCore toolkit creates for CodeBuild
-    8.  Every CloudWatch log group: the Lambdas', the Runtime's, CodeBuild's
-    9.  The local .bedrock_agentcore.yaml and .bedrock_agentcore/ folder
+    4.  All three S3 buckets
+    5.  The IAM roles from setup/03_iam_roles.py
+    6.  The Lambdas' CloudWatch log groups
+    7.  Local generated files (agentcore/agentcore.json, CDK build output)
+
+Left alone by default:
+    * The CDKToolkit stack and its bucket/repository. That is CDK's shared
+      bootstrap, used by any CDK project in the account - deleting it would
+      break unrelated work. Pass --include-cdk-bootstrap if this account is
+      only ever used for this project.
 
 Usage:
-    python cleanup/teardown.py --dry-run    # list what WOULD be deleted, change nothing
-    python cleanup/teardown.py              # delete, after asking you to confirm
+    python cleanup/teardown.py --dry-run    # list what WOULD be deleted
+    python cleanup/teardown.py              # delete, after confirming
     python cleanup/teardown.py --yes        # delete without asking
 
 Safe to re-run - every step tolerates the resource already being gone.
@@ -48,17 +61,13 @@ GATEWAY_ROLE_NAME = "agentcore-demo-gateway-exec-role"
 RUNTIME_ROLE_NAME = "agentcore-demo-runtime-exec-role"
 GATEWAY_NAME = "agentcore-demo-gateway"
 
-AGENT_NAME = "agentcore"
-ECR_REPOSITORY = "bedrock-agentcore-agentcore"
-CODEBUILD_PROJECT = "bedrock-agentcore-agentcore-builder"
+# Written by setup/06_configure_runtime.py and used by the AgentCore CLI.
+PROJECT_NAME = "agentcoredemo"
+STACK_NAME = f"AgentCore-{PROJECT_NAME}-default"
+CDK_BOOTSTRAP_STACK = "CDKToolkit"
 
-# The toolkit creates this itself during `agentcore deploy`, with a random
-# suffix, so it has to be found by prefix rather than by exact name.
-TOOLKIT_ROLE_PREFIX = "AmazonBedrockAgentCoreSDKCodeBuild-"
-
-# AWS manages this one for the AgentCore service itself. It is free, it is
-# shared across every AgentCore agent in the account, and deleting it can
-# break other work - so it is deliberately left alone.
+# AWS manages this for the AgentCore service. It is free, shared across the
+# account, and deleting it can break other work - so it is left alone.
 SERVICE_LINKED_ROLE = "AWSServiceRoleForBedrockAgentCoreRuntimeIdentity"
 
 DRY_RUN = False
@@ -88,66 +97,120 @@ def skip(description):
     print(f"  Not found, skipping: {description}")
 
 
-# --- 1. AgentCore Runtime -------------------------------------------------
+# --- 1. The CloudFormation stack -----------------------------------------
 
 
-def delete_agent_runtime(control, agent_name):
-    """Delete the deployed Runtime agent and any endpoints it has.
+def empty_stack_ecr_repositories(cfn, ecr, stack_name):
+    """Delete every image in the stack's ECR repositories first.
 
-    This is what `agentcore destroy` does, done directly against the API so
-    it works even if .bedrock_agentcore.yaml has been lost."""
-    runtimes = []
-    token = None
-    while True:
-        kwargs = {"maxResults": 100}
-        if token:
-            kwargs["nextToken"] = token
-        resp = control.list_agent_runtimes(**kwargs)
-        runtimes.extend(resp.get("agentRuntimes", []))
-        token = resp.get("nextToken")
-        if not token:
-            break
-
-    match = next((r for r in runtimes if r.get("agentRuntimeName") == agent_name), None)
-    if not match:
-        skip(f"AgentCore Runtime agent '{agent_name}'")
-        return
-
-    runtime_id = match["agentRuntimeId"]
-
-    # Custom endpoints have to go before the runtime itself. DEFAULT is
-    # created implicitly and disappears with the runtime.
+    A repository that still holds images can refuse to delete, which fails
+    the whole stack deletion. Emptying them first avoids a stack stuck in
+    DELETE_FAILED that then has to be cleaned up by hand."""
     try:
-        endpoints = control.list_agent_runtime_endpoints(agentRuntimeId=runtime_id).get(
-            "runtimeEndpoints", []
-        )
+        resources = cfn.list_stack_resources(StackName=stack_name)["StackResourceSummaries"]
     except ClientError:
-        endpoints = []
-    for endpoint in endpoints:
-        name = endpoint.get("name") or endpoint.get("endpointName")
-        if not name or name == "DEFAULT":
-            continue
-        if act(f"Runtime endpoint {name}"):
-            try:
-                control.delete_agent_runtime_endpoint(agentRuntimeId=runtime_id, endpointName=name)
-            except ClientError as exc:
-                print(f"    (endpoint {name}: {exc.response['Error']['Code']})")
-
-    if not act(f"AgentCore Runtime agent '{agent_name}' ({runtime_id})"):
         return
 
-    control.delete_agent_runtime(agentRuntimeId=runtime_id)
-
-    # Deletion is asynchronous, and the ECR repository cannot be removed
-    # while the runtime still references its image.
-    for _ in range(40):
+    for resource in resources:
+        if resource["ResourceType"] != "AWS::ECR::Repository":
+            continue
+        repo = resource.get("PhysicalResourceId")
+        if not repo:
+            continue
         try:
-            control.get_agent_runtime(agentRuntimeId=runtime_id)
+            images = ecr.list_images(repositoryName=repo).get("imageIds", [])
         except ClientError:
-            print(f"  Deleted AgentCore Runtime agent: {agent_name}")
-            return
-        time.sleep(3)
-    print("  Warning: runtime still reports as existing after 2 minutes; continuing anyway.")
+            continue
+        if not images:
+            continue
+        if act(f"{len(images)} image(s) from ECR repository {repo}"):
+            ecr.batch_delete_image(repositoryName=repo, imageIds=images)
+
+
+def delete_stack(cfn, ecr, stack_name, wait=True):
+    """Delete a CloudFormation stack and wait for it to finish."""
+    try:
+        cfn.describe_stacks(StackName=stack_name)
+    except ClientError:
+        skip(f"CloudFormation stack {stack_name}")
+        return
+
+    empty_stack_ecr_repositories(cfn, ecr, stack_name)
+
+    if not act(f"CloudFormation stack {stack_name} (and everything in it)"):
+        return
+
+    cfn.delete_stack(StackName=stack_name)
+    if not wait:
+        return
+
+    print("    waiting for the stack to finish deleting...")
+    waiter = cfn.get_waiter("stack_delete_complete")
+    try:
+        waiter.wait(StackName=stack_name, WaiterConfig={"Delay": 10, "MaxAttempts": 90})
+        print(f"  Deleted stack: {stack_name}")
+    except Exception as exc:
+        print(f"  Warning: stack did not delete cleanly ({type(exc).__name__}).")
+        print(f"           Check CloudFormation -> {stack_name} in the console.")
+
+
+# --- 1b. Leftovers from an older starter-toolkit deployment ---------------
+
+
+def delete_legacy_toolkit_leftovers(control, ecr, codebuild, runtime_name=None):
+    """Remove what an earlier deployment with the deprecated Python starter
+    toolkit left behind.
+
+    That toolkit named things `bedrock-agentcore-<agent>` and
+    `bedrock-agentcore-<agent>-builder`. The AgentCore CLI uses different
+    names and puts everything in a CloudFormation stack, so anything still
+    matching the old convention is an orphan from before the migration -
+    it will sit in your account, show up in the console next to the real
+    agent, and keep costing a little, until it is removed.
+
+    The Runtime itself is only deleted when you name it with
+    --legacy-runtime, because runtime names are freely chosen and this
+    should never guess at deleting an agent it does not own."""
+    if runtime_name:
+        runtimes = control.list_agent_runtimes().get("agentRuntimes", [])
+        match = next((r for r in runtimes if r.get("agentRuntimeName") == runtime_name), None)
+        if match is None:
+            skip(f"legacy Runtime agent '{runtime_name}'")
+        elif act(f"legacy Runtime agent '{runtime_name}' ({match['agentRuntimeId']})"):
+            control.delete_agent_runtime(agentRuntimeId=match["agentRuntimeId"])
+            time.sleep(10)  # let it release its container image before ECR
+
+    found = False
+    for repo in ecr.describe_repositories().get("repositories", []):
+        name = repo["repositoryName"]
+        if not name.startswith("bedrock-agentcore-"):
+            continue
+        found = True
+        if act(f"legacy ECR repository {name} (and its images)"):
+            ecr.delete_repository(repositoryName=name, force=True)
+
+    for project in codebuild.list_projects().get("projects", []):
+        if not (project.startswith("bedrock-agentcore-") and project.endswith("-builder")):
+            continue
+        found = True
+        if act(f"legacy CodeBuild project {project}"):
+            codebuild.delete_project(name=project)
+
+    if not found and not runtime_name:
+        skip("legacy starter-toolkit resources")
+
+    # Any runtime that is not the one this project deploys is worth pointing
+    # out, without touching it.
+    others = [
+        r.get("agentRuntimeName")
+        for r in control.list_agent_runtimes().get("agentRuntimes", [])
+        if not (r.get("agentRuntimeName") or "").startswith(PROJECT_NAME)
+        and r.get("agentRuntimeName") != runtime_name
+    ]
+    if others:
+        print(f"  Note: other Runtime agents exist and were NOT touched: {', '.join(others)}")
+        print("        If one is an old deployment of this project, remove it with")
+        print("        --legacy-runtime <name>.")
 
 
 # --- 2. Gateway -----------------------------------------------------------
@@ -169,9 +232,8 @@ def delete_gateway(client, name):
     if not act(f"Gateway {name}"):
         return
 
-    # Target deletion is async - poll until the gateway actually reports
-    # zero targets before trying to delete the gateway itself, otherwise
-    # AWS rejects it with "has targets associated with it".
+    # Target deletion is async - poll until the gateway reports zero targets,
+    # otherwise AWS rejects the delete with "has targets associated with it".
     for _ in range(15):
         remaining = client.list_gateway_targets(gatewayIdentifier=gateway_id).get("items", [])
         if not remaining:
@@ -197,29 +259,7 @@ def delete_lambda_functions(lambda_client):
             lambda_client.delete_function(FunctionName=function_name)
 
 
-# --- 4/5. ECR and CodeBuild ----------------------------------------------
-
-
-def delete_ecr_repository(ecr, repository_name):
-    try:
-        ecr.describe_repositories(repositoryNames=[repository_name])
-    except ClientError:
-        skip(f"ECR repository {repository_name}")
-        return
-    if act(f"ECR repository {repository_name} (and every image in it)"):
-        # force=True because a repository holding images can't be deleted.
-        ecr.delete_repository(repositoryName=repository_name, force=True)
-
-
-def delete_codebuild_project(codebuild, project_name):
-    if project_name not in codebuild.list_projects().get("projects", []):
-        skip(f"CodeBuild project {project_name}")
-        return
-    if act(f"CodeBuild project {project_name}"):
-        codebuild.delete_project(name=project_name)
-
-
-# --- 6. S3 ----------------------------------------------------------------
+# --- 4. S3 ----------------------------------------------------------------
 
 
 def empty_and_delete_bucket(s3, bucket_name):
@@ -243,7 +283,7 @@ def empty_and_delete_bucket(s3, bucket_name):
     print(f"  Deleted bucket: {bucket_name}")
 
 
-# --- 7. IAM ---------------------------------------------------------------
+# --- 5. IAM ---------------------------------------------------------------
 
 
 def delete_role_completely(iam, role_name):
@@ -265,39 +305,18 @@ def delete_role_completely(iam, role_name):
     print(f"  Deleted role: {role_name}")
 
 
-def delete_toolkit_roles(iam, prefix):
-    """The AgentCore toolkit names its CodeBuild role with a random suffix,
-    so match on the prefix instead of an exact name."""
-    found = False
-    paginator = iam.get_paginator("list_roles")
-    for page in paginator.paginate():
-        for role in page["Roles"]:
-            if role["RoleName"].startswith(prefix):
-                found = True
-                delete_role_completely(iam, role["RoleName"])
-    if not found:
-        skip(f"IAM roles starting with {prefix}")
-
-
-# --- 8. CloudWatch --------------------------------------------------------
+# --- 6. CloudWatch --------------------------------------------------------
 
 
 def delete_log_groups(logs_client, extra_prefixes):
-    groups = []
-    for function_name in LAMBDA_FUNCTIONS:
-        groups.append(f"/aws/lambda/{function_name}")
+    groups = [f"/aws/lambda/{name}" for name in LAMBDA_FUNCTIONS]
 
-    # Runtime and CodeBuild log groups have generated names, so discover them.
     for prefix in extra_prefixes:
         paginator = logs_client.get_paginator("describe_log_groups")
         for page in paginator.paginate(logGroupNamePrefix=prefix):
             groups.extend(g["logGroupName"] for g in page["logGroups"])
 
     for log_group in dict.fromkeys(groups):  # dedupe, keep order
-        try:
-            logs_client.describe_log_groups(logGroupNamePrefix=log_group, limit=1)
-        except ClientError:
-            pass
         if act(f"log group {log_group}"):
             try:
                 logs_client.delete_log_group(logGroupName=log_group)
@@ -307,24 +326,25 @@ def delete_log_groups(logs_client, extra_prefixes):
                 skip(f"log group {log_group}")
 
 
-# --- 9. Local toolkit files ----------------------------------------------
+# --- 7. Local generated files --------------------------------------------
 
 
-def delete_local_toolkit_files():
-    yaml_file = PROJECT_ROOT / ".bedrock_agentcore.yaml"
-    build_dir = PROJECT_ROOT / ".bedrock_agentcore"
-
-    if yaml_file.exists():
-        if act(f"local file {yaml_file.name}"):
-            yaml_file.unlink()
-    else:
-        skip(f"local file {yaml_file.name}")
-
-    if build_dir.exists():
-        if act(f"local folder {build_dir.name}/"):
-            shutil.rmtree(build_dir, ignore_errors=True)
-    else:
-        skip(f"local folder {build_dir.name}/")
+def delete_local_generated_files():
+    targets = [
+        PROJECT_ROOT / "agentcore" / "agentcore.json",
+        PROJECT_ROOT / "agentcore" / "cdk" / "cdk.out",
+        PROJECT_ROOT / "agentcore" / ".cli" / "deployed-state.json",
+    ]
+    for target in targets:
+        label = str(target.relative_to(PROJECT_ROOT))
+        if not target.exists():
+            skip(f"local {label}")
+            continue
+        if act(f"local {label}"):
+            if target.is_dir():
+                shutil.rmtree(target, ignore_errors=True)
+            else:
+                target.unlink()
 
 
 def confirm(region, account_id):
@@ -347,7 +367,17 @@ def main():
     parser = argparse.ArgumentParser(description="Delete every AWS resource this project created.")
     parser.add_argument("--dry-run", action="store_true", help="list what would be deleted, change nothing")
     parser.add_argument("--yes", action="store_true", help="skip the confirmation prompt")
-    parser.add_argument("--keep-local", action="store_true", help="leave .bedrock_agentcore.yaml in place")
+    parser.add_argument("--keep-local", action="store_true", help="leave generated local files in place")
+    parser.add_argument(
+        "--include-cdk-bootstrap",
+        action="store_true",
+        help="also delete the shared CDKToolkit stack (only if this account is used for nothing else)",
+    )
+    parser.add_argument(
+        "--legacy-runtime",
+        metavar="NAME",
+        help="also delete a Runtime agent left by an older starter-toolkit deployment, by name",
+    )
     args = parser.parse_args()
 
     global DRY_RUN
@@ -355,9 +385,7 @@ def main():
 
     config = load_config()
     region = config["AWS_REGION"]
-
-    sts = boto3.client("sts", region_name=region)
-    account_id = sts.get_caller_identity()["Account"]
+    account_id = boto3.client("sts", region_name=region).get_caller_identity()["Account"]
 
     if not DRY_RUN and not args.yes and not confirm(region, account_id):
         return 1
@@ -367,52 +395,51 @@ def main():
     iam = boto3.client("iam", region_name=region)
     logs_client = boto3.client("logs", region_name=region)
     control = boto3.client("bedrock-agentcore-control", region_name=region)
+    cfn = boto3.client("cloudformation", region_name=region)
     ecr = boto3.client("ecr", region_name=region)
+
     codebuild = boto3.client("codebuild", region_name=region)
 
-    print("\n[1/9] AgentCore Runtime agent...")
-    delete_agent_runtime(control, AGENT_NAME)
+    print("\n[1/8] AgentCore CloudFormation stack (Runtime, ECR, CodeBuild, KMS, IAM)...")
+    delete_stack(cfn, ecr, STACK_NAME)
 
-    print("\n[2/9] Gateway + targets...")
+    print("\n[2/8] Leftovers from an older starter-toolkit deployment...")
+    delete_legacy_toolkit_leftovers(control, ecr, codebuild, args.legacy_runtime)
+
+    print("\n[3/8] Gateway + targets...")
     delete_gateway(control, GATEWAY_NAME)
 
-    print("\n[3/9] Lambda functions...")
+    print("\n[4/8] Lambda functions...")
     delete_lambda_functions(lambda_client)
 
-    print("\n[4/9] ECR repository + images...")
-    delete_ecr_repository(ecr, ECR_REPOSITORY)
-
-    print("\n[5/9] CodeBuild project...")
-    delete_codebuild_project(codebuild, CODEBUILD_PROJECT)
-
-    print("\n[6/9] S3 buckets...")
+    print("\n[5/8] S3 buckets...")
     empty_and_delete_bucket(s3, config["BUCKET_SOURCE"])
     empty_and_delete_bucket(s3, config["BUCKET_DEST"])
     empty_and_delete_bucket(s3, config["BUCKET_LOG"])
-    # Created by `agentcore deploy` to hand the source to CodeBuild.
-    empty_and_delete_bucket(s3, f"bedrock-agentcore-codebuild-sources-{account_id}-{region}")
 
-    print("\n[7/9] IAM roles...")
+    print("\n[6/8] IAM roles...")
     delete_role_completely(iam, LAMBDA_ROLE_NAME)
     delete_role_completely(iam, GATEWAY_ROLE_NAME)
     delete_role_completely(iam, RUNTIME_ROLE_NAME)
-    delete_toolkit_roles(iam, TOOLKIT_ROLE_PREFIX)
     print(f"  Left alone (AWS-managed, free, shared): {SERVICE_LINKED_ROLE}")
 
-    print("\n[8/9] CloudWatch log groups...")
-    delete_log_groups(
-        logs_client,
-        extra_prefixes=[
-            "/aws/bedrock-agentcore/runtimes/",
-            f"/aws/codebuild/{CODEBUILD_PROJECT}",
-        ],
-    )
+    print("\n[7/8] CloudWatch log groups...")
+    delete_log_groups(logs_client, extra_prefixes=["/aws/bedrock-agentcore/runtimes/"])
 
-    print("\n[9/9] Local toolkit files...")
+    print("\n[8/8] Local generated files...")
     if args.keep_local:
         print("  Skipped (--keep-local).")
     else:
-        delete_local_toolkit_files()
+        delete_local_generated_files()
+
+    if args.include_cdk_bootstrap:
+        print("\n[extra] CDK bootstrap stack...")
+        delete_stack(cfn, ecr, CDK_BOOTSTRAP_STACK)
+    else:
+        print(f"\n[note] Left alone: the {CDK_BOOTSTRAP_STACK} stack.")
+        print("       It is CDK's shared bootstrap for this account and region, used by any")
+        print("       CDK project - not just this one. It costs almost nothing to keep.")
+        print("       Pass --include-cdk-bootstrap to remove it as well.")
 
     print()
     if DRY_RUN:

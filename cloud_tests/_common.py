@@ -23,7 +23,12 @@ import boto3
 from botocore.config import Config
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-AGENT_NAME = "test"
+
+# Must match setup/06_configure_runtime.py, which writes these into
+# agentcore/agentcore.json. The CLI deploys the runtime as
+# "<PROJECT_NAME>_<AGENT_NAME>-<generated suffix>".
+PROJECT_NAME = "agentcoredemo"
+AGENT_NAME = "agentcore"
 
 # Colourless status markers - they survive copy/paste into a document or a
 # video caption better than emoji do.
@@ -67,8 +72,13 @@ def find_agent_runtime(region, agent_name=AGENT_NAME):
     """Locate the deployed Runtime agent, and fail with a useful message if
     it isn't there. Returns (agent_arn, agent_id).
 
-    Looked up live from AWS rather than read out of .bedrock_agentcore.yaml,
-    so these scripts test what is actually deployed right now."""
+    Looked up live from AWS rather than read out of a local config file, so
+    these scripts test what is actually deployed right now.
+
+    The AgentCore CLI names the runtime `<project>_<runtime>-<suffix>`, where
+    the suffix is generated at deploy time - so an exact-name match is not
+    enough. This matches the `<project>_<runtime>` prefix instead, which is
+    stable across redeploys."""
     control = _control(region)
     runtimes = []
     paginator_token = None
@@ -82,13 +92,45 @@ def find_agent_runtime(region, agent_name=AGENT_NAME):
         if not paginator_token:
             break
 
-    match = next((r for r in runtimes if r.get("agentRuntimeName") == agent_name), None)
+    def name_of(runtime):
+        return runtime.get("agentRuntimeName") or ""
+
+    # Match the AgentCore CLI's naming FIRST: "<project>_<runtime>-<suffix>".
+    #
+    # The order matters. An earlier deployment made with the deprecated
+    # starter toolkit produces a runtime named just "<runtime>" - and the
+    # old guide told people to call it "agentcore", which is exactly this
+    # module's AGENT_NAME. Matching the bare name first would therefore
+    # find the OLD deployment and quietly test that instead of the one the
+    # CLI just deployed, with everything appearing to pass.
+    prefix = f"{PROJECT_NAME}_{agent_name}"
+    candidates = [r for r in runtimes if name_of(r).startswith(prefix)]
+    # Newest wins if a previous deploy left an older runtime behind.
+    candidates.sort(key=lambda r: r.get("lastUpdatedAt") or 0, reverse=True)
+    match = candidates[0] if candidates else None
+
     if match is None:
-        names = ", ".join(sorted(r.get("agentRuntimeName", "?") for r in runtimes)) or "(none)"
+        # Nothing from the CLI. Fall back to a bare-name match, but say so -
+        # silently testing a leftover deployment is worse than failing.
+        match = next((r for r in runtimes if name_of(r) == agent_name), None)
+        if match is not None:
+            print(
+                f"{FAIL} Found a Runtime named '{agent_name}', but nothing named "
+                f"'{prefix}*'.\n"
+                f"        That name belongs to the older starter-toolkit deployment, not\n"
+                f"        the one the AgentCore CLI creates. Deploy with `agentcore deploy`,\n"
+                f"        and remove the old one:\n"
+                f"          python cleanup/teardown.py --legacy-runtime {agent_name}"
+            )
+            raise SystemExit(1)
+
+    if match is None:
+        names = ", ".join(sorted(name_of(r) for r in runtimes)) or "(none)"
         raise SystemExit(
-            f"{FAIL} No deployed AgentCore Runtime named '{agent_name}' in {region}.\n"
+            f"{FAIL} No deployed AgentCore Runtime for project '{PROJECT_NAME}' "
+            f"in {region}.\n"
             f"        Runtimes found in this account/region: {names}\n"
-            f"        Deploy first:  agentcore configure -e agent/agent.py --execution-role <ARN>\n"
+            f"        Deploy first:  python setup/06_configure_runtime.py\n"
             f"                       agentcore deploy"
         )
 

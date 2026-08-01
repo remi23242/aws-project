@@ -12,11 +12,12 @@ LLM is only used to read log TEXT and form a conclusion for comparison.
 Runs two ways:
   - Locally/for tests: `python agent/agent.py --run-once` runs the loop
     once and exits.
-  - On AgentCore Runtime: `agentcore configure -e agent/agent.py` finds the
-    `app`/`invoke` below and deploys it; `agentcore invoke` then triggers
-    one full drain-B1 run per call, since this agent is deterministic and
-    autonomous rather than conversational - it doesn't need prompt content,
-    just a trigger to start.
+  - On AgentCore Runtime: `agentcore deploy` builds this into a container
+    and stands up the Runtime, using the settings in agentcore/agentcore.json
+    (which setup/06_configure_runtime.py generates). `agentcore invoke` then
+    triggers one full drain-B1 run per call, since this agent is
+    deterministic and autonomous rather than conversational - it doesn't
+    need prompt content, just a trigger to start.
 
 =========================================================================
 PERFORMANCE: why this loop is now parallel
@@ -147,25 +148,66 @@ def _timing_report():
         }
 
 
+# Every setting the agent reads. Listed explicitly so the deployed
+# container can be configured entirely from environment variables, with no
+# config.env file present at all.
+CONFIG_KEYS = (
+    "AWS_REGION",
+    "BEDROCK_MODEL_ID",
+    "LLM_PROVIDER",
+    "LLM_MAX_CONCURRENCY",
+    "GEMINI_API_KEY",
+    "GEMINI_MODEL",
+    "OPENAI_API_KEY",
+    "OPENAI_MODEL",
+    "GROQ_API_KEY",
+    "GROQ_MODEL",
+    "BUCKET_SUFFIX",
+    "BUCKET_SOURCE",
+    "BUCKET_DEST",
+    "BUCKET_LOG",
+    "AGENT_MAX_WORKERS",
+    "AGENT_REASONING_MODE",
+)
+
+
 def load_config(path="config.env"):
     """Tiny .env loader: KEY=VALUE lines. No extra dependency needed for this.
 
-    Any key can also be overridden by a real environment variable of the
-    same name, which is handy for the deployed container."""
-    config = {}
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            key, _, value = line.partition("=")
-            config[key.strip()] = value.strip()
+    Reads config.env when it exists, then lets real environment variables
+    override anything it found.
 
-    # Environment wins over the file, for the file's own keys plus the
-    # performance knobs (which don't have to be present in config.env).
-    for key in list(config) + ["AGENT_MAX_WORKERS", "AGENT_REASONING_MODE", "LLM_MAX_CONCURRENCY"]:
+    The file is optional on purpose. Locally you keep your settings in
+    config.env; in the deployed container there is no such file, because the
+    AgentCore CLI passes every setting as an environment variable declared in
+    agentcore/agentcore.json. That is deliberately better than shipping
+    config.env inside the image, which would bake your LLM API key into a
+    container stored in ECR."""
+    config = {}
+    try:
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                key, _, value = line.partition("=")
+                config[key.strip()] = value.strip()
+    except FileNotFoundError:
+        pass  # environment-only, which is how the deployed container runs
+
+    # Environment wins over the file, for every setting the agent understands
+    # plus anything the file happened to define.
+    for key in set(CONFIG_KEYS) | set(config):
         if key in os.environ:
             config[key] = os.environ[key]
+
+    if not config:
+        raise RuntimeError(
+            f"No configuration found: {path!r} does not exist and no AgentCore "
+            f"settings are present in the environment. Locally, copy "
+            f"config.example.env to config.env; when deployed, check the envVars "
+            f"block in agentcore/agentcore.json."
+        )
     return config
 
 
@@ -712,17 +754,16 @@ def run_agent(config):
 
 
 # --- AgentCore Runtime entrypoint ---------------------------------------
-# `agentcore configure -e agent/agent.py` finds this app object; deployed
-# invocations (`agentcore invoke`) call invoke() below. The payload's
-# content is optional - any invocation triggers one full drain-B1 run,
-# since this agent doesn't wait on a user request. The payload can however
-# tune this run, which is what the cloud test scripts use to demonstrate
-# the speed difference:
+# agentcore/agentcore.json names this file as the runtime's entrypoint, and
+# the container starts it as a module. That runs the __main__ block at the
+# bottom, which starts the app server below and waits. Deployed invocations
+# (`agentcore invoke`) then call invoke().
 #
-#     agentcore invoke '{"max_workers": 1}'      # old, one-file-at-a-time
-#     agentcore invoke '{"max_workers": 8}'      # parallel (default)
-#     agentcore invoke '{"reasoning": "inline"}' # reasoning back on the
-#                                                # critical path
+# The payload's content is optional - any invocation triggers one full
+# drain-B1 run, since this agent doesn't wait on a user request. It can
+# however tune the run:
+#
+#     agentcore invoke '{"max_workers": 12}'
 app = BedrockAgentCoreApp()
 
 

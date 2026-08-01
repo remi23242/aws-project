@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentcore-demo-agent"
+version = "0.1.0"
+description = "AgentCore Runtime agent that moves and verifies S3 files via Lambda"
+requires-python = ">=3.10"
+
+# Pinned to the versions this project was built and tested against, so the
+# container builds identically today and in six months. The AgentCore CLI
+# builds the image from this file plus uv.lock - there is no requirements.txt
+# in the container.
+dependencies = [
+    # The AgentCore Runtime SDK. Provides BedrockAgentCoreApp, which is what
+    # turns agent.py into something the Runtime can invoke. Note this is the
+    # SDK, not the deprecated starter-toolkit CLI.
+    "bedrock-agentcore==1.18.1",
+    # Strands' MCPClient, used to call L1/L2/L3 as Gateway tools.
+    "strands-agents==1.50.1",
+    # Signs MCP calls to the Gateway with IAM (SigV4).
+    "mcp-proxy-for-aws==1.6.4",
+    # S3, CloudWatch Logs, and the Gateway lookup.
+    "boto3==1.43.57",
+    # Used for both the OpenAI and Groq providers - Groq's API is
+    # OpenAI-compatible, so one client covers both.
+    "openai==2.48.0",
+    # The Gemini provider.
+    "google-genai==2.14.0",
+    # Supplies `opentelemetry-instrument`, which the generated Dockerfile
+    # wraps the entrypoint with when instrumentation.enableOtel is true.
+    "aws-opentelemetry-distro==0.12.2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
